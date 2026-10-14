@@ -18,6 +18,7 @@ namespace ExampleCounter
 {
     internal sealed class Counter
     {
+        public string Name = "";
         public ulong Count;
         public bool Running = true;
         public string? CountId;
@@ -29,6 +30,8 @@ namespace ExampleCounter
     internal sealed class Example : Integration
     {
         private const string Domain = "example_counter_csharp";
+        /// <summary>Hvor tit tællerens stand skrives i TheHomes log.</summary>
+        private static readonly TimeSpan LogEvery = TimeSpan.FromSeconds(10);
         private readonly Dictionary<string, Counter> _counters = [];
         private readonly Lock _lock = new();
 
@@ -197,7 +200,7 @@ namespace ExampleCounter
             var stop = new CancellationTokenSource();
             lock (_lock)
             {
-                _counters[id] = new Counter { Count = count, CountId = countId, RunningId = runningId, ResetId = resetId, Stop = stop };
+                _counters[id] = new Counter { Name = name, Count = count, CountId = countId, RunningId = runningId, ResetId = resetId, Stop = stop };
             }
             if (resetId is not null) await host.SetStateAsync(resetId, "unknown");
             await Publish(host, id);
@@ -227,6 +230,24 @@ namespace ExampleCounter
                         catch (PluginException e)
                         {
                             Log.Warn($"kunne ikke opdatere {sensor}: {e.Message}");
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                }
+            });
+            _ = Task.Run(async () =>
+            {
+                using var timer = new PeriodicTimer(LogEvery);
+                try
+                {
+                    while (await timer.WaitForNextTickAsync(stop.Token))
+                    {
+                        lock (_lock)
+                        {
+                            if (!_counters.TryGetValue(id, out var c)) return;
+                            Log.Info($"{c.Name}: tælleren står på {c.Count} ({(c.Running ? "kører" : "pause")})");
                         }
                     }
                 }
