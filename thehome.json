@@ -1,0 +1,8 @@
+{
+  "domain": "example_counter_csharp",
+  "name": "Eksempel-tæller (C#)",
+  "plugin_api": 1,
+  "config_flow": true,
+  "iot_class": "calculated",
+  "documentation": "https://github.com/magnusdunker/thehome-example-integration-csharp"
+}

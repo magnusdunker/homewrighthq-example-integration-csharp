@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>example_counter_csharp</AssemblyName>
+    <RootNamespace>ExampleCounter</RootNamespace>
+    <Version>0.1.0</Version>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Én selvstændig fil pr. platform; uden ICU, så den også kører på musl (Alpine, TheHomes Docker-image) -->
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\sdk\TheHome.Plugin.csproj" />
+  </ItemGroup>
+
+</Project>

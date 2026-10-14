@@ -1,0 +1,53 @@
+# Bygger en binær pr. platform, når et tag som v1.2.3 pushes, og lægger dem
+# sammen med thehome.json på en GitHub-release. TheHome installerer derfra.
+#
+# .NET krydskompilerer, så alle platforme bygges på én runner. Linux-binærerne
+# er glibc-builds (-gnu): .NET's musl-builds er ikke statiske og kan ikke køre
+# i TheHomes Debian-baserede Docker-image.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # assembly-navnet fra src/ExampleCounter.csproj og domænet fra thehome.json
+  BIN: example_counter_csharp
+  DOMAIN: example_counter_csharp
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Byg
+        shell: bash
+        run: |
+          mkdir dist
+          # .NET runtime id -> Rust target triple, som TheHome kender
+          for pair in \
+            win-x64:x86_64-pc-windows-msvc:.exe \
+            linux-x64:x86_64-unknown-linux-gnu: \
+            linux-arm64:aarch64-unknown-linux-gnu: \
+            osx-arm64:aarch64-apple-darwin: ; do
+            IFS=: read -r rid target ext <<< "$pair"
+            dotnet publish src/ExampleCounter.csproj -c Release -r "$rid" -o "out/$rid"
+            cp "out/$rid/$BIN$ext" "dist/$DOMAIN-$target$ext"
+          done
+          ls -la dist
+      - if: startsWith(github.ref, 'refs/tags/')
+        run: gh release create "$GITHUB_REF_NAME" dist/* thehome.json --title "$GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist/*
