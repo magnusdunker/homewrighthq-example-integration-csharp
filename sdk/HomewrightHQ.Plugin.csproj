@@ -4,8 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>TheHome.Plugin</RootNamespace>
-    <Description>SDK til eksterne TheHome-integrationer: JSON-RPC over stdin/stdout</Description>
+    <RootNamespace>HomewrightHQ.Plugin</RootNamespace>
+    <Description>SDK til eksterne HomewrightHQ-integrationer: JSON-RPC over stdin/stdout</Description>
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

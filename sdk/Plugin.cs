@@ -1,6 +1,6 @@
-// SDK til eksterne TheHome-integrationer.
+// SDK til eksterne HomewrightHQ-integrationer.
 //
-// En ekstern integration er et selvstændigt program. TheHome starter det og
+// En ekstern integration er et selvstændigt program. HomewrightHQ starter det og
 // taler med det over JSON-RPC 2.0 på stdin og stdout, én besked pr. linje.
 // stderr er integrationens log. Programmet stopper, når stdin lukkes.
 //
@@ -24,7 +24,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Channels;
 
-namespace TheHome.Plugin;
+namespace HomewrightHQ.Plugin;
 
 /// <summary>Versionen af protokollen, som denne SDK taler.</summary>
 public static class Protocol
@@ -33,7 +33,7 @@ public static class Protocol
 }
 
 /// <summary>
-/// En fejl til TheHome. <see cref="Kind"/> afgør, hvad TheHome gør:
+/// En fejl til HomewrightHQ. <see cref="Kind"/> afgør, hvad HomewrightHQ gør:
 /// <c>not_ready</c> prøver igen senere, <c>auth_failed</c> beder brugeren logge ind
 /// igen, <c>invalid_argument</c>, <c>not_supported</c>, <c>unavailable</c> og
 /// <c>not_found</c> vises ved tjenestekald, og <c>failed</c> er alt andet.
@@ -136,7 +136,7 @@ public sealed class FlowReply
         return this;
     }
 
-    /// <summary>Sæt et unikt id. TheHome afbryder med <c>already_configured</c>, hvis en anden opsætning har det.</summary>
+    /// <summary>Sæt et unikt id. HomewrightHQ afbryder med <c>already_configured</c>, hvis en anden opsætning har det.</summary>
     public FlowReply WithUniqueId(string id)
     {
         _uniqueId = id;
@@ -152,7 +152,7 @@ public sealed class FlowReply
     }
 }
 
-/// <summary>En enhed. Felterne svarer til TheHomes enhedsregister.</summary>
+/// <summary>En enhed. Felterne svarer til HomewrightHQ's enhedsregister.</summary>
 public sealed class Device
 {
     /// <summary>F.eks. <c>("mit_domæne", "serienummer")</c>. Holder enheden stabil.</summary>
@@ -182,7 +182,7 @@ public sealed class Device
     }
 }
 
-/// <summary>En entity. Felterne svarer til TheHomes entity-register.</summary>
+/// <summary>En entity. Felterne svarer til HomewrightHQ's entity-register.</summary>
 public sealed class Entity(string domain, string uniqueId)
 {
     /// <summary><c>sensor</c>, <c>switch</c>, <c>light</c>, <c>button</c>, <c>climate</c> ...</summary>
@@ -232,7 +232,7 @@ public abstract class Integration
     /// <summary>Sæt en opsætning op: registrér enheder og entities, start arbejde.</summary>
     public abstract Task SetupEntryAsync(Host host, Entry entry);
 
-    /// <summary>Stop arbejdet for en opsætning. TheHome fjerner selv dens tilstande.</summary>
+    /// <summary>Stop arbejdet for en opsætning. HomewrightHQ fjerner selv dens tilstande.</summary>
     public virtual Task UnloadEntryAsync(Host host, string entryId) => Task.CompletedTask;
 
     /// <summary>Et tjenestekald på en entity tilføjet med <c>handler = true</c>, f.eks. <c>switch.turn_on</c>.</summary>
@@ -250,7 +250,7 @@ public abstract class Integration
     public virtual Task RemoveDeviceAsync(Host host, Entry entry, JsonNode? device) => Task.CompletedTask;
 }
 
-/// <summary>Forbindelsen til TheHome.</summary>
+/// <summary>Forbindelsen til HomewrightHQ.</summary>
 public sealed class Host
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
@@ -267,7 +267,7 @@ public sealed class Host
     /// <summary>Integrationens egen mappe til filer. Den bevares ved opdateringer.</summary>
     public string DataDir { get; internal set; }
 
-    /// <summary>Kald en metode i TheHome og vent på svaret.</summary>
+    /// <summary>Kald en metode i HomewrightHQ og vent på svaret.</summary>
     public async Task<JsonNode?> RequestAsync(string method, JsonObject parameters)
     {
         var id = Interlocked.Increment(ref _nextId);
@@ -277,7 +277,7 @@ public sealed class Host
         if (!_out.TryWrite(msg.ToJsonString()))
         {
             _pending.TryRemove(id, out _);
-            throw PluginException.NotReady("forbindelsen til TheHome er lukket");
+            throw PluginException.NotReady("forbindelsen til HomewrightHQ er lukket");
         }
         try
         {
@@ -286,7 +286,7 @@ public sealed class Host
         catch (TimeoutException)
         {
             _pending.TryRemove(id, out _);
-            throw PluginException.Failed($"{method}: TheHome svarede ikke");
+            throw PluginException.Failed($"{method}: HomewrightHQ svarede ikke");
         }
     }
 
@@ -306,7 +306,7 @@ public sealed class Host
 
     internal void CloseAll()
     {
-        foreach (var (_, tcs) in _pending) tcs.TrySetException(PluginException.NotReady("forbindelsen til TheHome er lukket"));
+        foreach (var (_, tcs) in _pending) tcs.TrySetException(PluginException.NotReady("forbindelsen til HomewrightHQ er lukket"));
         _pending.Clear();
     }
 
@@ -320,7 +320,7 @@ public sealed class Host
     }
 
     /// <summary>
-    /// Tilføj en entity. Med <paramref name="handler"/> sender TheHome dens tjenestekald til
+    /// Tilføj en entity. Med <paramref name="handler"/> sender HomewrightHQ dens tjenestekald til
     /// <see cref="Integration.EntityServiceAsync"/>. Returnerer entity_id, eller <c>null</c>
     /// hvis brugeren har slået den fra.
     /// </summary>
@@ -342,7 +342,7 @@ public sealed class Host
     public Task RegisterServiceAsync(string entryId, string service, JsonObject? description = null) =>
         RequestAsync("service/register", new JsonObject { ["entry_id"] = entryId, ["service"] = service, ["description"] = description });
 
-    /// <summary>Kald en tjeneste i TheHome, f.eks. <c>light.turn_on</c>.</summary>
+    /// <summary>Kald en tjeneste i HomewrightHQ, f.eks. <c>light.turn_on</c>.</summary>
     public Task<JsonNode?> CallServiceAsync(string domain, string service, JsonObject data) =>
         RequestAsync("hub/call_service", new JsonObject { ["domain"] = domain, ["service"] = service, ["data"] = data });
 
@@ -364,7 +364,7 @@ public sealed class Host
         RequestAsync("entry/update", new JsonObject { ["entry_id"] = entryId, ["data"] = data });
 }
 
-/// <summary>Skriv til TheHomes log via stderr.</summary>
+/// <summary>Skriv til HomewrightHQ's log via stderr.</summary>
 public static class Log
 {
     public static void Error(string message) => Write("ERROR", message);
@@ -375,10 +375,10 @@ public static class Log
     private static void Write(string level, string message) => Console.Error.WriteLine($"{level} {message}");
 }
 
-/// <summary>Løkken, der forbinder en <see cref="Integration"/> med TheHome.</summary>
+/// <summary>Løkken, der forbinder en <see cref="Integration"/> med HomewrightHQ.</summary>
 public static class PluginHost
 {
-    /// <summary>Kør integrationen, indtil TheHome lukker stdin eller beder om at stoppe.</summary>
+    /// <summary>Kør integrationen, indtil HomewrightHQ lukker stdin eller beder om at stoppe.</summary>
     public static void Run(Integration integration) => RunAsync(integration).GetAwaiter().GetResult();
 
     public static async Task RunAsync(Integration integration)
@@ -409,7 +409,7 @@ public static class PluginHost
             }
             catch (Exception)
             {
-                Log.Warn($"ugyldig besked fra TheHome: {line}");
+                Log.Warn($"ugyldig besked fra HomewrightHQ: {line}");
                 continue;
             }
             if (msg is null) continue;
@@ -422,7 +422,7 @@ public static class PluginHost
             if (method == "shutdown") break;
             var id = msg["id"]?.DeepClone();
             var parameters = msg["params"]?.DeepClone();
-            // Hver besked i sin egen opgave, så integrationen kan kalde TheHome, mens TheHome venter.
+            // Hver besked i sin egen opgave, så integrationen kan kalde HomewrightHQ, mens HomewrightHQ venter.
             _ = Task.Run(async () =>
             {
                 JsonObject reply;

@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/sdk/">
-    <Project Path="sdk/TheHome.Plugin.csproj" />
+    <Project Path="sdk/HomewrightHQ.Plugin.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ExampleCounter.csproj" />

@@ -9,7 +9,7 @@
     <RootNamespace>ExampleCounter</RootNamespace>
     <Version>0.1.0</Version>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- Én selvstændig fil pr. platform; uden ICU, så den også kører på musl (Alpine, TheHomes Docker-image) -->
+    <!-- Én selvstændig fil pr. platform; uden ICU, så den også kører på musl (Alpine, HomewrightHQ's Docker-image) -->
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\sdk\TheHome.Plugin.csproj" />
+    <ProjectReference Include="..\sdk\HomewrightHQ.Plugin.csproj" />
   </ItemGroup>
 
 </Project>

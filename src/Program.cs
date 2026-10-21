@@ -1,4 +1,4 @@
-// Eksempel-tæller (C#): en ekstern integration til TheHome.
+// Eksempel-tæller (C#): en ekstern integration til HomewrightHQ.
 //
 // Hver opsætning får en enhed med
 // - en sensor, der tæller én op med et fast interval,
@@ -10,7 +10,7 @@
 // integrationens datamappe, så tallet overlever en genstart.
 
 using System.Text.Json.Nodes;
-using TheHome.Plugin;
+using HomewrightHQ.Plugin;
 
 PluginHost.Run(new ExampleCounter.Example());
 
@@ -30,7 +30,7 @@ namespace ExampleCounter
     internal sealed class Example : Integration
     {
         private const string Domain = "example_counter_csharp";
-        /// <summary>Hvor tit tællerens stand skrives i TheHomes log.</summary>
+        /// <summary>Hvor tit tællerens stand skrives i HomewrightHQ's log.</summary>
         private static readonly TimeSpan LogEvery = TimeSpan.FromSeconds(10);
         private readonly Dictionary<string, Counter> _counters = [];
         private readonly Lock _lock = new();
@@ -66,7 +66,7 @@ namespace ExampleCounter
             o?[key] is JsonValue v ? (v.TryGetValue(out long l) ? l : v.TryGetValue(out double d) ? (long)d : null) : null;
 
         /// <summary>example_counter_csharp.set gælder alle opsætninger; målet afgør hvilken.
-        /// TheHome knytter tjenesten til den opsætning, der registrerede den.</summary>
+        /// HomewrightHQ knytter tjenesten til den opsætning, der registrerede den.</summary>
         private static Task RegisterSetService(Host host, string entryId) =>
             host.RegisterServiceAsync(entryId, "set", new JsonObject
             {
@@ -110,7 +110,7 @@ namespace ExampleCounter
             }
         }
 
-        /// <summary>Send tællerens og kontaktens tilstand til TheHome.</summary>
+        /// <summary>Send tællerens og kontaktens tilstand til HomewrightHQ.</summary>
         private async Task Publish(Host host, string entryId)
         {
             ulong count;
@@ -178,7 +178,7 @@ namespace ExampleCounter
             {
                 Identifiers = [(Domain, id)],
                 Name = name,
-                Manufacturer = "TheHome",
+                Manufacturer = "HomewrightHQ",
                 Model = "Eksempel-tæller (C#)",
                 SwVersion = typeof(Example).Assembly.GetName().Version?.ToString(3),
             });
@@ -266,7 +266,7 @@ namespace ExampleCounter
                 if (_counters.Remove(entryId, out var c)) c.Stop?.Cancel();
                 other = _counters.Keys.FirstOrDefault();
             }
-            // TheHome fjerner tjenesten med opsætningen; de andre skal stadig have den
+            // HomewrightHQ fjerner tjenesten med opsætningen; de andre skal stadig have den
             if (other is not null) await RegisterSetService(host, other);
         }
 

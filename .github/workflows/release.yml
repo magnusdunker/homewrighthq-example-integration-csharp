@@ -1,9 +1,9 @@
 # Bygger en binær pr. platform, når et tag som v1.2.3 pushes, og lægger dem
-# sammen med thehome.json på en GitHub-release. TheHome installerer derfra.
+# sammen med thehome.json på en GitHub-release. HomewrightHQ installerer derfra.
 #
 # .NET krydskompilerer, så alle platforme bygges på én runner. Linux-binærerne
 # er glibc-builds (-gnu): .NET's musl-builds er ikke statiske og kan ikke køre
-# i TheHomes Debian-baserede Docker-image.
+# i HomewrightHQ's Debian-baserede Docker-image.
 name: Release
 
 on:
@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           mkdir dist
-          # .NET runtime id -> Rust target triple, som TheHome kender
+          # .NET runtime id -> Rust target triple, som HomewrightHQ kender
           for pair in \
             win-x64:x86_64-pc-windows-msvc:.exe \
             linux-x64:x86_64-unknown-linux-gnu: \
