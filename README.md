@@ -1,51 +1,51 @@
-# Eksempel-tæller (C#) til HomewrightHQ
+# Example counter (C#) for HomewrightHQ
 
-En lille ekstern integration til [HomewrightHQ](https://github.com/magnusdunker/homewrighthq), skrevet i C# og .NET 10. Den gør det samme som [Rust-eksemplet](https://github.com/magnusdunker/thehome-example-integration) og er til at afprøve integrationer fra GitHub eller som udgangspunkt for sin egen.
+A small external integration for [HomewrightHQ](https://github.com/magnusdunker/homewrighthq), written in C# and .NET 10. It does the same as the [Rust example](https://github.com/magnusdunker/thehome-example-integration) and is for trying out integrations from GitHub or as a starting point for your own.
 
-Hver opsætning giver en enhed med:
+Each setup creates a device with:
 
-- en sensor, **Antal**, der tæller én op med et fast interval
-- en kontakt, **Tæller**, der sætter tællingen på pause
-- en knap, **Nulstil**, der sætter tallet til 0 og sender hændelsen `example_counter_csharp_reset`
+- a sensor, **Antal** (count), that counts up by one at a fixed interval
+- a switch, **Tæller** (counter), that pauses the counting
+- a button, **Nulstil** (reset), that sets the number to 0 and fires the event `example_counter_csharp_reset`
 
-Desuden har den tjenesten `example_counter_csharp.set`, der sætter en tæller til en bestemt værdi, og et options-forløb, hvor intervallet kan ændres. Tallet gemmes i integrationens datamappe, så det overlever en genstart.
+It also has the service `example_counter_csharp.set`, which sets a counter to a given value, and an options flow where you can change the interval. The number is stored in the integration's data folder, so it survives a restart.
 
 ## Installation
 
-I HomewrightHQ: **Indstillinger → Integrationer → Fra GitHub**. Indsæt
+In HomewrightHQ: **Settings → Integrations → From GitHub**. Paste
 
 ```
 https://github.com/magnusdunker/homewrighthq-example-integration-csharp
 ```
 
-og tryk **Installér**. Tilføj derefter **Eksempel-tæller (C#)** under **Tilføj integration**.
+and press **Install**. Then add **Eksempel-tæller (C#)** under **Add integration**.
 
-## Sådan virker det
+## How it works
 
-En ekstern integration er et selvstændigt program. HomewrightHQ starter det og taler med det over JSON-RPC på stdin og stdout. Protokollen er beskrevet i HomewrightHQ's [docs/custom-integrations.md](https://github.com/magnusdunker/homewrighthq/blob/main/docs/custom-integrations.md).
+An external integration is a standalone program. HomewrightHQ starts it and talks to it over JSON-RPC on stdin and stdout. The protocol is described in HomewrightHQ's [docs/custom-integrations.md](https://github.com/magnusdunker/homewrighthq/blob/main/docs/custom-integrations.md).
 
-Repoet indeholder:
+The repo contains:
 
-- `thehome.json`: domæne, navn og protokolversion
-- `sdk/`: biblioteket `HomewrightHQ.Plugin`, der klarer protokollen. Arv fra `Integration` og kald `PluginHost.Run`.
-- `src/Program.cs`: selve integrationen
-- `.github/workflows/release.yml`: bygger en binær til hver platform og lægger dem på en release
+- `thehome.json`: domain, name and protocol version
+- `sdk/`: the library `HomewrightHQ.Plugin`, which handles the protocol. Inherit from `Integration` and call `PluginHost.Run`.
+- `src/Program.cs`: the integration itself
+- `.github/workflows/release.yml`: builds a binary for each platform and puts them on a release
 
-Programmet udgives som én selvstændig, trimmet fil pr. platform (11-13 MB), så .NET ikke skal være installeret, hvor HomewrightHQ kører. SDK'en bruger kun `JsonNode`, så trimming giver ingen advarsler.
+The program is published as one self-contained, trimmed file per platform (11-13 MB), so .NET does not need to be installed where HomewrightHQ runs. The SDK uses only `JsonNode`, so trimming gives no warnings.
 
-## Lav din egen
+## Make your own
 
-1. Kopiér repoet og ret `domain` og `name` i `thehome.json`. Domænet må kun indeholde små bogstaver, tal og `_` og må ikke være en indbygget integrations domæne.
-2. Ret `AssemblyName` i `src/ExampleCounter.csproj` og `BIN` og `DOMAIN` øverst i `release.yml`.
-3. Arv fra `Integration` i `HomewrightHQ.Plugin`. Kun `SetupEntryAsync` er påkrævet.
-4. Push et tag, f.eks. `git tag v0.1.0 && git push --tags`. Workflowet bygger til Windows, Linux (x86_64 og arm64) og macOS og opretter releasen.
+1. Copy the repo and change `domain` and `name` in `thehome.json`. The domain may only contain lowercase letters, digits and `_`, and must not be the domain of a built-in integration.
+2. Change `AssemblyName` in `src/ExampleCounter.csproj`, and `BIN` and `DOMAIN` at the top of `release.yml`.
+3. Inherit from `Integration` in `HomewrightHQ.Plugin`. Only `SetupEntryAsync` is required.
+4. Push a tag, e.g. `git tag v0.1.0 && git push --tags`. The workflow builds for Windows, Linux (x86_64 and arm64) and macOS and creates the release.
 
-HomewrightHQ henter altid den nyeste release. Binærerne skal hedde `<domæne>-<target>`, f.eks. `example_counter_csharp-aarch64-unknown-linux-gnu`.
+HomewrightHQ always fetches the newest release. The binaries must be named `<domain>-<target>`, e.g. `example_counter_csharp-aarch64-unknown-linux-gnu`.
 
-Linux-binærerne er bygget mod glibc. .NET's musl-builds er ikke statisk linket og kan ikke starte i HomewrightHQ's Debian-baserede Docker-image.
+The Linux binaries are built against glibc. .NET's musl builds are not statically linked and cannot start in HomewrightHQ's Debian-based Docker image.
 
-Byg lokalt med `dotnet build`. Programmet venter på beskeder fra HomewrightHQ på stdin, så det gør ingenting, når det startes alene.
+Build locally with `dotnet build`. The program waits for messages from HomewrightHQ on stdin, so it does nothing when started on its own.
 
-## Licens
+## License
 
 MIT
